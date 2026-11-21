@@ -26,9 +26,6 @@ const eagle = `<g fill="#000"><path d="${wing}"/><path d="${wing}" transform="tr
   <polygon points="12.6,6 11,6.9 12.6,7.3"/><polygon points="17.4,6 19,6.9 17.4,7.3"/>
   <polygon points="13.4,14 16.6,14 17.2,16.8 15,16 12.8,16.8"/></g>`;
 
-const kosovoMap = polygon("9.5,10.5 10.5,9 12.2,8.4 13.6,7.4 15.2,7.3 16.4,8.3 18.2,8.8 19.6,10 19,11.6 17.3,12.3 15.8,13.2 14,12.8 12.3,13.4 10.6,12.6", "#D0A650");
-const kosovoStars = [[9, 5.6], [11.4, 4.6], [13.8, 4.2], [16.2, 4.2], [18.6, 4.6], [21, 5.6]].map(([x, y]) => star(x, y, 1.1, "#fff")).join("");
-
 let chakra = "";
 for (let i = 0; i < 24; i++) {                       // the 24 spokes of India's wheel
   const a = i * Math.PI / 12;
@@ -74,8 +71,6 @@ const countryList = [
   ["Bolivia", rows("#D52B1E", "#F9E300", "#007934")],
   ["Mauritius", rows("#EA2839", "#1A206D", "#FFD500", "#00A551")],
   ["Czech Republic", rect(0, 0, 30, 10, "#fff") + rect(0, 10, 30, 10, "#D7141A") + polygon("0,0 15,10 0,20", "#11457E")],
-  ["Albania", full("#E41E20") + eagle],
-  ["Kosovo", full("#244AA5") + kosovoMap + kosovoStars],
   ["Benin", rect(0, 0, 12, 20, "#008751") + rect(12, 0, 18, 10, "#FCD116") + rect(12, 10, 18, 10, "#E8112D")],
   ["Iceland", full("#02529C") + rect(7, 0, 5, 20, "#fff") + rect(0, 7.5, 30, 5, "#fff") + rect(8.25, 0, 2.5, 20, "#DC1E35") + rect(0, 8.75, 30, 2.5, "#DC1E35")],
   ["Yemen", rows("#CE1126", "#fff", "#000")],
@@ -90,6 +85,7 @@ const LEVELS = {
   hard:   { label: "Hard",   rounds: 12, choices: 4, seconds: 5,  desc: "12 flags, 4 choices, 5 seconds for the full speed bonus" }
 };
 const BASE_POINTS = 100, MAX_SPEED_POINTS = 50, STREAK_STEP = 20, MAX_STREAK_STEPS = 5;
+const flame = "🔥";
 
 // ---------- Helpers ----------
 const app = document.getElementById("app");
@@ -112,6 +108,27 @@ function streakTier(streak) {
   return streak >= 1 ? 1 : 0;
 }
 
+// ---------- XP and player levels ----------
+const XP_PER_LEVEL = 250;
+function getTotalXP() {
+  try { return Number(localStorage.getItem("flagquiz-total-xp")) || 0; }
+  catch (e) { return 0; }
+}
+function addXP(amount) {
+  const total = getTotalXP() + amount;
+  try { localStorage.setItem("flagquiz-total-xp", String(total)); } catch (e) {}
+  return total;
+}
+function playerLevel(xp = getTotalXP()) { return Math.floor(xp / XP_PER_LEVEL) + 1; }
+function playerProgress(xp = getTotalXP()) { return xp % XP_PER_LEVEL; }
+function playerCard() {
+  const progress = playerProgress();
+  return `<section class="player-card" aria-label="Player level">
+    <div class="player-top">Lvl ${playerLevel()}</div>
+    <div class="xp-track"><i style="width:${progress / XP_PER_LEVEL * 100}%"></i></div>
+  </section>`;
+}
+
 function saveBestScore(points) {
   const key = "flagquiz-best-" + level.label;
   let best = 0;
@@ -126,31 +143,42 @@ function saveBestScore(points) {
 // ---------- Game state ----------
 let level, game;
 const totalPoints = () => game.correct * BASE_POINTS + game.speedPoints + game.streakPoints;
-const statusLine = () => `Question ${game.round + 1} of ${level.rounds}, ${game.correct} correct`;
+const statusLine = () => level.endless
+  ? `Flag ${game.round + 1} · ${game.correct} correct`
+  : `Question ${game.round + 1} of ${level.rounds}, ${game.correct} correct`;
 
 // ---------- Screens ----------
 function showMenu() {
   const buttons = Object.entries(LEVELS).map(([key, l]) =>
     `<button class="lvl" data-level="${key}"><b>${l.label}</b><span>${l.desc}</span></button>`).join("");
   app.innerHTML = `
+    ${playerCard()}
     <header><h1>Flag Test</h1></header>
     <p class="sub">Pick a difficulty to begin.</p>
-    ${buttons}`;
+    ${buttons}
+    <button class="lvl endless-choice" data-level="endless"><b>♾️ Endless Mode</b><span>Keep guessing flags. One wrong answer ends your run!</span></button>`;
   app.querySelectorAll(".lvl").forEach(b => b.onclick = () => startGame(b.dataset.level));
 }
 
 function startGame(levelKey) {
-  level = LEVELS[levelKey];
+  level = levelKey === "endless"
+    ? { label: "Endless", rounds: Infinity, choices: 4, seconds: 10, endless: true }
+    : { ...LEVELS[levelKey], endless: false };
   game = {
-    flags: shuffle(countries).slice(0, level.rounds),   // random, no repeats
+    flags: shuffle(countries), // Endless mode deals from a shuffled deck without repeats
     round: 0, correct: 0, streak: 0, bestStreak: 0,
-    speedPoints: 0, streakPoints: 0, answered: false, shownAt: 0
+    speedPoints: 0, streakPoints: 0, xpEarned: 0, answered: false, shownAt: 0,
+    ended: false, lastFlag: null
   };
   showQuestion();
 }
 
 function showQuestion() {
-  if (game.round >= level.rounds) return showResults();
+  if (game.ended || game.round >= level.rounds) return showResults();
+  if (level.endless && game.round >= game.flags.length) {
+    const nextDeck = shuffle(countries.filter(c => c !== game.lastFlag));
+    game.flags.push(...nextDeck);
+  }
   const answer = game.flags[game.round];
   const wrongOnes = shuffle(countries.filter(c => c !== answer)).slice(0, level.choices - 1);
   const options = shuffle([answer, ...wrongOnes]);
@@ -158,18 +186,24 @@ function showQuestion() {
   game.shownAt = Date.now();
 
   app.innerHTML = `
+    ${playerCard()}
     <div class="streak" data-tier="${streakTier(game.streak)}" title="Answers correct in a row">${flame} ${game.streak}</div>
     <header><h1>Flag Test</h1><span class="score">${totalPoints()} pts</span></header>
     <p class="sub">${statusLine()}</p>
-    <div class="bar"><i style="width:${game.round / level.rounds * 100}%"></i></div>
+    ${level.endless ? `<p class="endless-note">♾️ Endless run · one mistake ends the game</p>` : `<div class="bar"><i style="width:${game.round / level.rounds * 100}%"></i></div>`}
     <div class="flag"><img src="${answer.flag}" alt="A country flag"></div>
     <p class="q">Which country does this flag belong to?</p>
     <div class="opts">${options.map(o => `<button class="opt" data-name="${o.name}">${o.name}</button>`).join("")}</div>
     <p class="msg"></p>
-    <button class="next" hidden>${game.round === level.rounds - 1 ? "See results" : "Next flag"}</button>`;
+    <button class="next" hidden>${level.endless ? "Next flag" : game.round === level.rounds - 1 ? "See results" : "Next flag"}</button>`;
 
   app.querySelectorAll(".opt").forEach(b => b.onclick = () => answerQuestion(b, answer));
-  $(".next").onclick = () => { game.round++; showQuestion(); };
+  $(".next").onclick = () => {
+    if (game.ended || (!level.endless && game.round === level.rounds - 1)) return showResults();
+    game.lastFlag = game.flags[game.round];
+    game.round++;
+    showQuestion();
+  };
 }
 
 function answerQuestion(button, answer) {
@@ -187,9 +221,13 @@ function answerQuestion(button, answer) {
     const streakBonus = Math.min(game.streak - 1, MAX_STREAK_STEPS) * STREAK_STEP;
     game.speedPoints += speed;
     game.streakPoints += streakBonus;
+    const xpGain = 25 + (game.streak > 0 && game.streak % 5 === 0 ? 25 : 0);
+    game.xpEarned += xpGain;
+    addXP(xpGain);
     gained = BASE_POINTS + speed + streakBonus;
   } else {
     game.streak = 0;
+    if (level.endless) game.ended = true;
   }
 
   app.querySelectorAll(".opt").forEach(b => {
@@ -204,8 +242,9 @@ function answerQuestion(button, answer) {
   $(".streak").dataset.tier = streakTier(game.streak);
 
   const message = $(".msg");
-  message.textContent = isCorrect ? `Correct! +${gained} points` : `Not quite. It was ${answer.name}. Streak reset.`;
+  message.textContent = isCorrect ? `Correct! +${gained} points · +${25 + (game.streak % 5 === 0 ? 25 : 0)} XP` : `Not quite. It was ${answer.name}.${level.endless ? " Your endless run is over!" : " Streak reset."}`;
   message.style.color = isCorrect ? "var(--good)" : "var(--bad)";
+  $(".next").textContent = level.endless && !isCorrect ? "See results" : (!level.endless && game.round === level.rounds - 1 ? "See results" : "Next flag");
   $(".next").hidden = false;
   $(".next").focus();
 }
@@ -213,7 +252,7 @@ function answerQuestion(button, answer) {
 function showResults() {
   const points = totalPoints();
   const best = saveBestScore(points);
-  const note = game.correct === level.rounds ? "Perfect score!" : game.correct >= 7 ? "Great work." : game.correct >= 4 ? "Good start. Try again?" : "Keep practicing.";
+  const note = level.endless ? (game.correct >= 10 ? "Amazing run!" : "Nice try. Keep practicing!") : game.correct === level.rounds ? "Perfect score!" : game.correct >= 7 ? "Great work." : game.correct >= 4 ? "Good start. Try again?" : "Keep practicing.";
 
   app.innerHTML = `<div class="final">
     <h1>Test complete</h1>
@@ -224,7 +263,8 @@ function showResults() {
       <tr><td>Streak bonus</td><td>${game.streakPoints}</td></tr>
       <tr class="tot"><td>Total</td><td>${points}</td></tr>
     </table>
-    <p class="sub">${level.label}: ${game.correct} of ${level.rounds} correct, best streak ${game.bestStreak}</p>
+    <p class="sub">${level.endless ? `Endless Mode: ${game.correct} flags guessed` : `${level.label}: ${game.correct} of ${level.rounds} correct`}, best streak ${game.bestStreak}</p>
+    ${playerCard()}
     <p class="sub">${note} Your best total: ${best} pts</p>
     <button class="next">Play again</button></div>`;
   $(".next").onclick = showMenu;

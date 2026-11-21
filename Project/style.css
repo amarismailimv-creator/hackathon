@@ -107,7 +107,7 @@ main {
   padding: 34px 22px 34px 58px;       /* extra left padding leaves room for the red margin line */
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   border: 1px solid #d9d2c0;
   border-radius: 4px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
@@ -387,4 +387,50 @@ button:focus-visible {
   font-weight: 700;
   border-top: 2px solid var(--ink);
   border-bottom: 0;
+}
+
+/* ---------- Endless mode ---------- */
+.endless-choice {
+  border-color: #d8b34a;
+  background: rgba(255, 248, 220, 0.13);
+}
+.endless-choice b {
+  color: #ffe08a;
+}
+.endless-choice:hover {
+  background: rgba(255, 248, 220, 0.22);
+}
+.endless-note {
+  margin: 12px 0;
+  text-align: center;
+  color: #ffe08a;
+  font-weight: 700;
+}
+
+
+/* ---------- Compact level display ---------- */
+.player-card {
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.player-top {
+  font-weight: 800;
+  color: #8a6100;
+}
+.xp-track {
+  height: 10px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #e5dfce;
+}
+.xp-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #e6b83f, #f4d36c);
+  transition: width .3s ease;
 }
