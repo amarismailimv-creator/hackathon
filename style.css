@@ -1,0 +1,390 @@
+/* =========================================================
+   FLAG QUIZ STYLES
+   1. Page (chalkboard)   2. Chalk writing   3. Test paper
+   4. Menu                5. Question screen  6. Answer buttons
+   7. Results screen
+   ========================================================= */
+
+
+/* ---------- 1. Page: the chalkboard ---------- */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+
+:root {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 48px 28px 52px;
+  display: grid;
+  place-items: center;
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  background:
+    radial-gradient(ellipse at 18% 12%, rgba(255, 255, 255, 0.08), transparent 45%),
+    radial-gradient(ellipse at 82% 88%, rgba(255, 255, 255, 0.06), transparent 50%),
+    #2c4a3e;
+}
+
+/* Wooden frame around the board */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border: 14px solid #8b5a2b;
+  box-shadow:
+    inset 0 0 0 3px #5e3a17,
+    inset 0 0 70px rgba(0, 0, 0, 0.5);
+}
+
+/* Chalk ledge along the bottom */
+body::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 24px;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(#b07a3d, #6e4520);
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.35);
+}
+
+
+/* ---------- 2. Chalk writing on the board ---------- */
+
+.w {
+  position: fixed;
+  z-index: 0;
+  max-width: 220px;
+  pointer-events: none;
+  line-height: 1.25;
+  color: rgba(255, 255, 255, 0.62);
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.25);
+  font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", "Chalkboard SE", cursive;
+}
+
+/* Each line has its own spot, size and tilt */
+.w.a {
+  top: 11%;
+  left: 5%;
+  font-size: 2rem;
+  transform: rotate(-4deg);
+  text-decoration: underline wavy rgba(255, 255, 255, 0.4);
+  text-underline-offset: 6px;
+}
+.w.b { top: 34%;    left: 6%;   font-size: 1.35rem; transform: rotate(-2deg); }
+.w.c { bottom: 16%; left: 7%;   font-size: 1.5rem;  transform: rotate(3deg); }
+.w.d { top: 12%;    right: 6%;  font-size: 2.2rem;  transform: rotate(5deg); }
+.w.e { top: 38%;    right: 6%;  font-size: 1.35rem; transform: rotate(2deg); text-align: right; }
+.w.f { bottom: 15%; right: 7%;  font-size: 1.2rem;  transform: rotate(-3deg); opacity: 0.8; }
+
+/* Hide the chalk writing on narrow screens so it doesn't sit under the paper */
+@media (max-width: 999px) {
+  .w { display: none; }
+}
+
+
+/* ---------- 3. The test paper ---------- */
+
+main {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 480px;
+  min-height: 640px;
+  padding: 34px 22px 34px 58px;       /* extra left padding leaves room for the red margin line */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid #d9d2c0;
+  border-radius: 4px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+
+  /* Colors used everywhere inside the paper */
+  --paper: #fffdf5;
+  --ink: #1d2a44;
+  --muted: #5d5a50;
+  --line: #cfc8b4;
+  --accent: #0b5fa5;
+  --good: #1c7c4a;
+  --good-bg: #dff3e7;
+  --bad: #b3362b;
+
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image:
+    /* red margin line */
+    linear-gradient(90deg, transparent 40px, rgba(210, 60, 60, 0.55) 40px, rgba(210, 60, 60, 0.55) 42px, transparent 42px),
+    /* blue ruled lines */
+    repeating-linear-gradient(transparent 0 27px, rgba(80, 130, 200, 0.16) 27px 28px);
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.sub {
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+
+/* ---------- 4. Menu: difficulty buttons ---------- */
+
+.lvl {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 14px 16px;
+  text-align: left;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: transparent;
+}
+
+.lvl:hover {
+  background: rgba(31, 111, 209, 0.1);
+}
+
+.lvl b {
+  display: block;
+  font-size: 1.15rem;
+}
+
+.lvl span {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+
+/* ---------- 5. Question screen ---------- */
+
+/* Streak badge in the top-left corner of the paper */
+.streak {
+  position: absolute;
+  top: -22px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 18px 6px 12px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  transition: color 0.25s, border-color 0.25s;
+}
+
+.streak svg {
+  display: block;
+}
+
+/* The badge color changes with the streak (tier 3 is unused) */
+.streak[data-tier="1"] { color: var(--accent); border-color: var(--accent); }   /* 1-2: blue   */
+.streak[data-tier="2"] { color: #e08a00;       border-color: #e08a00; }         /* 3-6: orange */
+.streak[data-tier="4"] { color: #a855f7;       border-color: #a855f7; }         /* 7-9: purple */
+.streak[data-tier="5"] {                                                         /* 10: gold    */
+  color: #d4a000;
+  border-color: #d4a000;
+  background: var(--good-bg);
+}
+
+.score {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+/* Progress bar */
+.bar {
+  height: 6px;
+  margin-bottom: 18px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--line);
+}
+
+.bar i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s;
+}
+
+/* The flag image */
+.flag {
+  margin: 6px 0 14px;
+}
+
+.flag img {
+  display: block;
+  width: min(250px, 72%);
+  aspect-ratio: 3 / 2;
+  margin: 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+}
+
+.q {
+  margin: 0 0 16px;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* "Correct!" / "Not quite" message */
+.msg {
+  min-height: 1.5em;
+  margin: 14px 0 8px;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* "Next flag" and "Play again" button */
+.next {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+}
+
+.next[hidden] {
+  display: none;
+}
+
+
+/* ---------- 6. Answer buttons (2 x 2 grid) ---------- */
+
+.opts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.opt {
+  min-height: 68px;
+  padding: 14px 16px;
+  text-align: center;
+  font-weight: 700;
+  color: #fff;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: #d93a2f;                  /* red (1st button) */
+}
+.opt:nth-child(2) { background: #f5c400; color: #1b1b1b; }   /* yellow */
+.opt:nth-child(3) { background: #1f6fd1; }                   /* blue   */
+.opt:nth-child(4) { background: #1f9d55; }                   /* green  */
+
+.opt:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+/* After answering: fade the others, mark the right and wrong ones */
+.opt:disabled {
+  cursor: default;
+}
+
+.opt:disabled:not(.good):not(.bad) {
+  opacity: 0.4;
+}
+
+.opt.good {
+  outline: 4px solid var(--ink);
+  outline-offset: 2px;
+}
+.opt.good::before {
+  content: "\2713  ";                   /* check mark */
+}
+
+.opt.bad {
+  outline: 4px dashed var(--ink);
+  outline-offset: 2px;
+}
+.opt.bad::before {
+  content: "\2715  ";                   /* cross mark */
+}
+
+
+/* ---------- 7. Results screen ---------- */
+
+.final {
+  text-align: center;
+}
+
+/* Score written in red pen and circled */
+.final .big {
+  display: inline-block;
+  margin: 10px 0 14px;
+  padding: 4px 26px;
+  font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #c8281e;
+  border: 3px solid #c8281e;
+  border-radius: 50%;
+  transform: rotate(-6deg);
+}
+
+/* Points breakdown table */
+.sum {
+  width: 100%;
+  margin: 10px 0 14px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.sum td {
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sum td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sum .tot td {
+  font-weight: 700;
+  border-top: 2px solid var(--ink);
+  border-bottom: 0;
+}
