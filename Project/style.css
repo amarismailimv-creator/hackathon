@@ -31,7 +31,7 @@ body {
   background:
     radial-gradient(ellipse at 18% 12%, rgba(255, 255, 255, 0.08), transparent 45%),
     radial-gradient(ellipse at 82% 88%, rgba(255, 255, 255, 0.06), transparent 50%),
-    #2c4a3e;
+    var(--board, #2c4a3e);
 }
 
 /* Wooden frame around the board */
@@ -89,6 +89,14 @@ body::after {
 .w.d { top: 12%;    right: 6%;  font-size: 2.2rem;  transform: rotate(5deg); }
 .w.e { top: 38%;    right: 6%;  font-size: 1.35rem; transform: rotate(2deg); text-align: right; }
 .w.f { bottom: 15%; right: 7%;  font-size: 1.2rem;  transform: rotate(-3deg); opacity: 0.8; }
+.w.g { top: 57%; left: 3%; font-size: 1.15rem; transform: rotate(-5deg); }
+.w.h { top: 57%; right: 3%; font-size: 1.15rem; transform: rotate(4deg); text-align: right; }
+.w.i { top: 3%; left: 31%; font-size: 1.05rem; transform: rotate(2deg); }
+.w.j { top: 3%; right: 30%; font-size: 1.05rem; transform: rotate(-3deg); text-align: right; }
+.w.k { bottom: 4%; left: 27%; font-size: 1.05rem; transform: rotate(-2deg); }
+.w.l { bottom: 4%; right: 25%; font-size: 1.05rem; transform: rotate(3deg); text-align: right; }
+.w.m { top: 46%; left: 2%; max-width: 150px; font-size: 0.8rem; line-height: 1.2; transform: rotate(2deg); }
+.w.n { top: 72%; right: 2%; max-width: 165px; font-size: 0.85rem; line-height: 1.2; transform: rotate(-2deg); text-align: right; }
 
 /* Hide the chalk writing on narrow screens so it doesn't sit under the paper */
 @media (max-width: 999px) {
@@ -113,11 +121,11 @@ main {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 
   /* Colors used everywhere inside the paper */
-  --paper: #fffdf5;
+  --paper: var(--theme-paper, #fffdf5);
   --ink: #1d2a44;
   --muted: #5d5a50;
   --line: #cfc8b4;
-  --accent: #0b5fa5;
+  --accent: var(--theme-accent, #0b5fa5);
   --good: #1c7c4a;
   --good-bg: #dff3e7;
   --bad: #b3362b;
@@ -433,4 +441,367 @@ button:focus-visible {
   border-radius: inherit;
   background: linear-gradient(90deg, #e6b83f, #f4d36c);
   transition: width .3s ease;
+}
+
+
+/* ---------- Hints, flag facts and achievements ---------- */
+
+.hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.hint-btn {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 2px dashed var(--ink);
+  border-radius: 999px;
+  background: transparent;
+}
+.hint-btn:hover:not(:disabled) { background: rgba(31, 111, 209, 0.1); }
+.hint-btn:disabled { opacity: 0.45; cursor: default; }
+
+.hint-text {
+  min-height: 1.3em;
+  margin: 8px 0 0;
+  text-align: center;
+  font-weight: 700;
+  color: var(--accent);
+}
+.hint-text span { margin: 0 8px; }
+
+.fact {
+  margin: 8px 0;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  border-left: 4px solid var(--accent);
+  border-radius: 4px;
+  background: rgba(31, 111, 209, 0.08);
+}
+
+.toast {
+  margin: 6px 0;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  text-align: center;
+  border: 2px solid #d4a000;
+  border-radius: 10px;
+  background: #fff6d6;
+}
+
+.ach-btn {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 14px 16px;
+  font-weight: 700;
+  text-align: left;
+  border: 2px solid #d4a000;
+  border-radius: 10px;
+  background: #fff6d6;
+}
+
+.ach-list {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+.ach {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  opacity: 0.55;
+}
+.ach.done { opacity: 1; }
+.ach-icon { font-size: 1.4rem; }
+.ach b { display: block; }
+.ach span:not(.ach-icon) { font-size: 0.85rem; color: var(--muted); }
+
+.new-ach {
+  margin: 10px 0;
+  padding: 8px 12px;
+  text-align: left;
+  border: 2px solid #d4a000;
+  border-radius: 10px;
+  background: #fff6d6;
+}
+.new-ach ul { margin: 6px 0 0; padding-left: 18px; }
+
+
+/* ---------- Themes, level-up animation and prestige ---------- */
+
+.ach-btn.alt { border-color: var(--accent); background: rgba(31, 111, 209, 0.08); }
+.ach-btn.prestige-btn { border-color: #a855f7; background: #f3e8ff; }
+
+.prestige-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 9px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  border-radius: 999px;
+  background: #b8733a;
+}
+.prestige-badge[data-tier="2"] { background: #8a97a6; }
+.prestige-badge[data-tier="3"] { background: #d4a000; }
+.prestige-badge[data-tier="4"] { background: #a855f7; box-shadow: 0 0 8px #a855f7; }
+
+.prestige-next { margin: 0 0 14px; text-align: center; }
+
+.theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.theme-card {
+  padding: 8px;
+  text-align: center;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+}
+.theme-card.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.theme-card:disabled { opacity: 0.5; cursor: default; }
+.theme-card b { display: block; font-size: 0.9rem; }
+.theme-card > span:last-child { font-size: 0.75rem; color: var(--muted); }
+.swatch { display: block; position: relative; height: 46px; margin-bottom: 6px; border-radius: 6px; }
+.swatch i { position: absolute; inset: 8px 30%; border-radius: 3px; }
+
+/* Level-up / prestige celebration */
+.levelup {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.55);
+  animation: fade-in 0.25s ease-out;
+}
+.levelup-card {
+  position: relative;
+  padding: 0 24px;
+  text-align: center;
+  color: #fff;
+  animation: pop-in 0.6s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.levelup-ring {
+  display: grid;
+  place-items: center;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 12px;
+  font-size: 4rem;
+  font-weight: 700;
+  color: #4a3000;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe27a, #e6a800);
+  animation: ring-glow 1.2s ease-in-out infinite alternate;
+}
+.levelup-card h2 { margin: 0 0 6px; font-size: 2rem; letter-spacing: 0.08em; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
+.levelup-card p { margin: 4px 0; font-weight: 700; }
+.sparks i {
+  position: absolute;
+  left: 50%;
+  top: 75px;
+  width: 10px;
+  height: 10px;
+  margin: -5px;
+  border-radius: 50%;
+  background: #ffd34d;
+  transform: rotate(var(--angle)) translateY(0);
+  animation: spark 1.1s ease-out forwards;
+}
+@keyframes spark { to { transform: rotate(var(--angle)) translateY(-150px); opacity: 0; } }
+@keyframes pop-in { from { transform: scale(0.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ring-glow {
+  from { box-shadow: 0 0 20px rgba(255, 210, 70, 0.6); }
+  to   { box-shadow: 0 0 60px rgba(255, 230, 120, 1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .levelup * { animation: none !important; }
+}
+
+
+/* ---------- Speedrun, transitions, statistics and titles ---------- */
+
+/* Smooth transition between screens and questions */
+main.enter > * { animation: screen-in 0.25s ease-out backwards; }
+@keyframes screen-in { from { opacity: 0; transform: translateY(10px); } }
+.opt { transition: filter 0.15s, opacity 0.25s; }
+@media (prefers-reduced-motion: reduce) { main.enter > * { animation: none; } }
+
+/* Themes button: floats in the bottom corner, no border */
+.corner-actions {
+  position: fixed;
+  right: 34px;
+  bottom: 40px;
+  z-index: 5;
+  display: flex;
+  gap: 9px;
+}
+.themes-corner,
+.custom-corner {
+  padding: 10px 16px;
+  font-weight: 700;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+.custom-corner { background: #397b58; }
+@media (max-width: 520px) {
+  .corner-actions { right: 18px; bottom: 32px; gap: 6px; }
+  .themes-corner, .custom-corner { padding: 9px 12px; font-size: 0.85rem; }
+}
+
+.speedrun-choice { border-color: #e08a00; background: #fff3e0; }
+
+.menu-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.mini {
+  flex: 1;
+  padding: 10px 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: transparent;
+}
+.mini:hover { background: rgba(31, 111, 209, 0.1); }
+
+.hints[hidden] { display: none; }
+
+/* Speedrun countdown */
+.timer {
+  position: relative;
+  height: 22px;
+  margin-bottom: 18px;
+  overflow: hidden;
+  border-radius: 11px;
+  background: var(--line);
+}
+.timer i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #e08a00, #f4b400);
+  transition: width 0.1s linear;
+}
+.timer span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.record { margin: 8px 0; text-align: center; font-weight: 700; color: #b07a00; }
+.stat-title { margin: 14px 0 0; font-size: 1rem; }
+
+.player-title { margin-left: 8px; font-size: 0.85rem; font-weight: 400; opacity: 0.85; }
+
+.title-list { display: grid; gap: 6px; margin-bottom: 12px; }
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+}
+.title-row span { font-size: 0.8rem; color: var(--muted); }
+.title-row.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.title-row:disabled { opacity: 0.5; cursor: default; }
+
+.custom-title { display: block; margin-bottom: 8px; font-size: 0.9rem; font-weight: 700; }
+.custom-title input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  font: inherit;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+
+/* ---------- Streak record and scrolling lists ---------- */
+.streak small { margin-left: 4px; font-size: 0.65rem; font-weight: 400; opacity: 0.85; }
+
+/* Long lists scroll inside the paper so the paper never grows taller than the screen */
+.scroll-area {
+  max-height: max(180px, min(420px, calc(100vh - 340px)));
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+
+/* Film, logo and custom test screens */
+.special-clue {
+  margin: 24px auto;
+  min-height: 150px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: clamp(2.5rem, 9vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: var(--paper);
+  color: var(--ink, #222);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 5px 0 rgba(0,0,0,.15);
+}
+.custom-flags {
+  max-height: 340px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 8px;
+  margin: 16px 0;
+  padding: 12px;
+  background: rgba(255,255,255,.08);
+  border-radius: 12px;
+}
+.custom-flags label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px;
+  border-radius: 7px;
+  background: rgba(255,255,255,.08);
+}
+.custom-flags input { accent-color: var(--accent); }
+.custom-flag { width: min(70%, 260px); height: auto; border-radius: 6px; }
+
+
+/* Extra controls for the custom quiz builder */
+main:has(.builder-pick-row) {
+  min-height: 0;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+.builder-label { display:block; min-width:0; margin:12px 0; text-align:left; font-weight:700; }
+.builder-input { display:block; width:100%; min-width:0; box-sizing:border-box; margin-top:6px; padding:10px 12px; border:1px solid var(--line, #aaa); border-radius:9px; background:var(--paper, #fff); color:var(--ink, #222); font:inherit; }
+.builder-settings { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(130px, 100%),1fr)); gap:8px; }
+.builder-pick-row,.builder-tools { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-top:14px; }
+.builder-pick-row span { font-size:.82rem; color:var(--muted,#666); }
+.builder-tools { justify-content:flex-start; margin:8px 0; }
+.custom-flags { min-width:0; max-height:max(180px, min(420px, calc(100vh - 340px))); overflow-y:auto; overflow-x:hidden; grid-template-columns:repeat(auto-fit,minmax(min(145px, 100%),1fr)); }
+.custom-flags label { min-width:0; overflow-wrap:anywhere; }
+.custom-flags label[hidden] { display:none; }
+.custom-timer { text-align:center; font-weight:700; margin:10px 0; }
+@media (max-height: 700px) {
+  main:has(.builder-pick-row) { max-height: calc(100vh - 64px); }
+  .custom-flags { max-height: 220px; }
 }
